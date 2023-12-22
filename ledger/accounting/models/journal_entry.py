@@ -7,12 +7,16 @@ from accounting.models.journal_entry_detail import JournalEntryDetail
 
 
 class JournalEntryManager(models.Manager):
-    def create_from_details(self, *args, details=None, **kwargs):
+    def create_from_details(
+        self, *args, details=None, allow_negative_balances=True, **kwargs
+    ):
         """
         Create a JournalEntry from a list of JournalEntryDetails
 
         Args:
         details: list - A list of unsaved JournalEntryDetails
+        allow_negative_balances - When False, raises a ValidationError if the
+            update would cause an account balance to go negative
         """
         if not isinstance(details, list):
             raise ValidationError(
@@ -28,17 +32,24 @@ class JournalEntryManager(models.Manager):
                 credits += detail.amount
         if credits != debits:
             raise ValidationError("Debits must equal Credits")
-        
+
         account_ids = [detail.account.id for detail in details]
 
         with transaction.atomic():
             journal_entry = JournalEntry.objects.create(*args, **kwargs)
-            accounts = Account.objects.filter(id__in=account_ids).select_for_update()
+            Account.objects.filter(id__in=account_ids).select_for_update()
             for detail in details:
                 detail.journal_entry = journal_entry
                 detail.save()
-                detail.account.balance += detail.account.normal * detail.normal * detail.amount
+                detail.account.balance += (
+                    detail.account.normal * detail.normal * detail.amount
+                )
                 detail.account.save()
+                if detail.account.balance < 0 and not allow_negative_balances:
+                    # This JournalEntry would result in a negative account balance, so
+                    # unwind the atomic transaction
+                    raise ValidationError("Negative account balances not allowed when allow_negative_balances flag is False")
+
         return journal_entry
 
 
