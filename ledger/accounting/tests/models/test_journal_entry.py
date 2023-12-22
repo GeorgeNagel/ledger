@@ -7,11 +7,13 @@ from accounting.models.account import Account
 from accounting.models.journal_entry_detail import JournalEntryDetail
 from accounting.models.journal_entry import JournalEntry
 
+from accounting.tests.factories.account import AccountFactory
+
 
 class TestJournalEntry(TestCase):
     def test_credits_must_equal_debits(self):
-        account_one = Account.objects.create(normal=Account.Normals.DEBIT)
-        account_two = Account.objects.create(normal=Account.Normals.DEBIT)
+        account_one = AccountFactory(normal=Account.Normals.DEBIT)
+        account_two = AccountFactory(normal=Account.Normals.DEBIT)
         with self.assertRaisesRegex(ValidationError, "Debits must equal Credits"):
             debit = JournalEntryDetail(
                 account=account_one, normal=JournalEntryDetail.Normals.DEBIT, amount=1
@@ -27,9 +29,9 @@ class TestJournalEntry(TestCase):
     def test_supports_more_than_two_legs(self):
         # In some situations, it can be useful to create
         # a journal entry with credits/debits in more than two accounts
-        account_one = Account.objects.create(normal=Account.Normals.DEBIT)
-        account_two = Account.objects.create(normal=Account.Normals.DEBIT)
-        account_three = Account.objects.create(normal=Account.Normals.CREDIT)
+        account_one = AccountFactory(normal=Account.Normals.DEBIT)
+        account_two = AccountFactory(normal=Account.Normals.DEBIT)
+        account_three = AccountFactory(normal=Account.Normals.CREDIT)
 
         debit_one = JournalEntryDetail(
             account=account_one, normal=JournalEntryDetail.Normals.DEBIT, amount=1

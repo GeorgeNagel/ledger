@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 
+from accounting.models.account import Account
 from accounting.models.mixins import IdentifiableMixin, TimestampedMixin
 from accounting.models.journal_entry_detail import JournalEntryDetail
 
@@ -27,12 +28,17 @@ class JournalEntryManager(models.Manager):
                 credits += detail.amount
         if credits != debits:
             raise ValidationError("Debits must equal Credits")
+        
+        account_ids = [detail.account.id for detail in details]
 
         with transaction.atomic():
             journal_entry = JournalEntry.objects.create(*args, **kwargs)
+            accounts = Account.objects.filter(id__in=account_ids).select_for_update()
             for detail in details:
                 detail.journal_entry = journal_entry
                 detail.save()
+                detail.account.balance += detail.account.normal * detail.normal * detail.amount
+                detail.account.save()
         return journal_entry
 
 
