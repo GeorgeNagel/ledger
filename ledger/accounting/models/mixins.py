@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 
@@ -22,17 +24,7 @@ class TimestampedMixin:
 
 class IdentifiableMixin:
     """
-    Adds an auto-incrementing Id and UUID
+    Adds an auto-incrementing Id
     """
 
-    # Auto-incrementing IDs should not be exposed to users
-    # e.g. in URLs or API responses, as a potential attacker
-    # could guess at possible other values of IDs due
-    # to their auto-incrementing nature
-    id = models.AutoField(primary_key=True)
-
-    # The UUID allows unique identification of the model
-    # e.g. in URLs or API responses, while not providing
-    # potential attackers any information about possible
-    # values for other UUIDs.
-    uuid = models.UUIDField()
+    id = models.AutoField(primary_key=True, unique=True)

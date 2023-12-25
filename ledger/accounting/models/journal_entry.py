@@ -48,7 +48,9 @@ class JournalEntryManager(models.Manager):
                 if detail.account.balance < 0 and not allow_negative_balances:
                     # This JournalEntry would result in a negative account balance, so
                     # unwind the atomic transaction
-                    raise ValidationError("Negative account balances not allowed when allow_negative_balances flag is False")
+                    raise ValidationError(
+                        "Negative account balances not allowed when allow_negative_balances flag is False"
+                    )
 
         return journal_entry
 
@@ -59,6 +61,6 @@ class JournalEntry(IdentifiableMixin, TimestampedMixin, models.Model):
     """
 
     # The effective date of the transaction
-    date_effective = models.DateTimeField()
+    effective_date = models.DateTimeField()
 
     objects = JournalEntryManager()

@@ -21,7 +21,7 @@ class TestAccount(TestCase):
             account=account_two, normal=JournalEntryDetail.Normals.CREDIT, amount=50
         )
         JournalEntry.objects.create_from_details(
-            date_effective=datetime(2000, 1, 1, tzinfo=timezone.utc),
+            effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
             details=[debit, credit],
         )
 
@@ -40,7 +40,7 @@ class TestAccount(TestCase):
             account=account_two, normal=JournalEntryDetail.Normals.CREDIT, amount=50
         )
         JournalEntry.objects.create_from_details(
-            date_effective=datetime(2000, 1, 1, tzinfo=timezone.utc),
+            effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
             details=[debit, credit],
         )
 
@@ -59,7 +59,7 @@ class TestAccount(TestCase):
             account=account_two, normal=JournalEntryDetail.Normals.DEBIT, amount=50
         )
         JournalEntry.objects.create_from_details(
-            date_effective=datetime(2000, 1, 1, tzinfo=timezone.utc),
+            effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
             details=[debit, credit],
         )
 
@@ -78,7 +78,7 @@ class TestAccount(TestCase):
             account=account_two, normal=JournalEntryDetail.Normals.DEBIT, amount=50
         )
         JournalEntry.objects.create_from_details(
-            date_effective=datetime(2000, 1, 1, tzinfo=timezone.utc),
+            effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
             details=[debit, credit],
         )
 

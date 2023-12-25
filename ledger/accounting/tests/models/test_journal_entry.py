@@ -22,7 +22,7 @@ class TestJournalEntry(TestCase):
                 account=account_two, normal=JournalEntryDetail.Normals.DEBIT, amount=2
             )
             JournalEntry.objects.create_from_details(
-                date_effective=datetime(2000, 1, 1, tzinfo=timezone.utc),
+                effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
                 details=[debit, credit],
             )
 
@@ -43,7 +43,7 @@ class TestJournalEntry(TestCase):
             account=account_three, normal=JournalEntryDetail.Normals.CREDIT, amount=2
         )
         JournalEntry.objects.create_from_details(
-            date_effective=datetime(2000, 1, 1, tzinfo=timezone.utc),
+            effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
             details=[debit_one, debit_two, credit],
         )
         self.assertEqual(JournalEntryDetail.objects.count(), 3)
@@ -61,7 +61,7 @@ class TestJournalEntry(TestCase):
         )
         try:
             JournalEntry.objects.create_from_details(
-                date_effective=datetime(2000, 1, 1, tzinfo=timezone.utc),
+                effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
                 details=[debit, credit],
                 allow_negative_balances=False,
             )
