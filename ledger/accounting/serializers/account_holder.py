@@ -9,4 +9,4 @@ class AccountHolderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AccountHolder
-        fields = ["first_name", "last_name", "created", "uuid"]
+        fields = ["first_name", "last_name", "created", "id", "uuid"]

@@ -18,6 +18,7 @@ class TestAccountHolderSerializer(TestCase):
             {
                 "first_name": "Ian",
                 "last_name": "Curtis",
+                "id": account_holder.id,
                 "uuid": str(account_holder.uuid),
                 "created": account_holder.created.isoformat(),
             },

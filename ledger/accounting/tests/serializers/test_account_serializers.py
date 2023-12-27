@@ -20,9 +20,10 @@ class TestAccountSerializer(TestCase):
             {
                 "account_type": "checking",
                 "normal": 1,
+                "id": account.id,
                 "uuid": str(account.uuid),
                 "created": account.created.isoformat(),
-                "account_holder": str(account.account_holder.uuid),
+                "account_holder": account.account_holder.id,
             },
         )
 
@@ -32,7 +33,7 @@ class TestAccountSerializer(TestCase):
         data = {
             "account_type": "checking",
             "normal": -1,
-            "account_holder": account_holder.uuid,
+            "account_holder": account_holder.id,
         }
         serializer = AccountSerializer(data=data)
 

@@ -1,14 +1,12 @@
 from rest_framework import serializers
 
 from accounting.models.account import Account
-from accounting.models.account_holder import AccountHolder
-from accounting.serializers.fields import IsoformatDateTimeField, UUIDRelatedField
+from accounting.serializers.fields import IsoformatDateTimeField
 
 
 class AccountSerializer(serializers.ModelSerializer):
     created = IsoformatDateTimeField(read_only=True)
-    account_holder = UUIDRelatedField(queryset=AccountHolder.objects.all())
 
     class Meta:
         model = Account
-        fields = ["account_type", "created", "uuid", "normal", "account_holder"]
+        fields = ["account_type", "created", "id", "uuid", "normal", "account_holder"]
