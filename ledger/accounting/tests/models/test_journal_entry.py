@@ -1,29 +1,22 @@
-from datetime import datetime, timezone
-
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 
 from accounting.models.account import Account
-from accounting.models.journal_entry_detail import JournalEntryDetail
+from accounting.models.account_entry import AccountEntry
 from accounting.models.journal_entry import JournalEntry
 
 from accounting.tests.factories.account import AccountFactory
 
 
-class TestJournalEntry(TestCase):
+class TestJournalEntryManager(TestCase):
     def test_credits_must_equal_debits(self):
         account_one = AccountFactory(normal=Account.Normals.DEBIT)
         account_two = AccountFactory(normal=Account.Normals.DEBIT)
         with self.assertRaisesRegex(ValidationError, "Debits must equal Credits"):
-            debit = JournalEntryDetail(
-                account=account_one, normal=JournalEntryDetail.Normals.DEBIT, amount=1
-            )
-            credit = JournalEntryDetail(
-                account=account_two, normal=JournalEntryDetail.Normals.DEBIT, amount=2
-            )
-            JournalEntry.objects.create_from_details(
-                effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
-                details=[debit, credit],
+            debit = {"account": account_one.id, "normal": 1, "amount": 1}
+            credit = {"account": account_two.id, "normal": -1, "amount": 2}
+            JournalEntry.objects.create_from_account_entry_dicts(
+                account_entry_dicts=[debit, credit],
             )
 
     def test_supports_more_than_two_legs(self):
@@ -33,36 +26,24 @@ class TestJournalEntry(TestCase):
         account_two = AccountFactory(normal=Account.Normals.DEBIT)
         account_three = AccountFactory(normal=Account.Normals.CREDIT)
 
-        debit_one = JournalEntryDetail(
-            account=account_one, normal=JournalEntryDetail.Normals.DEBIT, amount=1
+        debit_one = {"account": account_one.id, "normal": 1, "amount": 1}
+        debit_two = {"account": account_two.id, "normal": 1, "amount": 1}
+        credit = {"account": account_three.id, "normal": -1, "amount": 2}
+        JournalEntry.objects.create_from_account_entry_dicts(
+            account_entry_dicts=[debit_one, debit_two, credit],
         )
-        debit_two = JournalEntryDetail(
-            account=account_two, normal=JournalEntryDetail.Normals.DEBIT, amount=1
-        )
-        credit = JournalEntryDetail(
-            account=account_three, normal=JournalEntryDetail.Normals.CREDIT, amount=2
-        )
-        JournalEntry.objects.create_from_details(
-            effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
-            details=[debit_one, debit_two, credit],
-        )
-        self.assertEqual(JournalEntryDetail.objects.count(), 3)
+        self.assertEqual(AccountEntry.objects.count(), 3)
 
     def test_supports_flag_for_no_negative_balances(self):
         account_one = AccountFactory(normal=Account.Normals.DEBIT)
         account_two = AccountFactory(normal=Account.Normals.DEBIT)
 
-        debit = JournalEntryDetail(
-            account=account_one, normal=JournalEntryDetail.Normals.DEBIT, amount=1
-        )
+        debit = {"account": account_one.id, "normal": 1, "amount": 1}
         # This credit would cause account_two to have a negative balance
-        credit = JournalEntryDetail(
-            account=account_two, normal=JournalEntryDetail.Normals.CREDIT, amount=1
-        )
+        credit = {"account": account_two.id, "normal": -1, "amount": 1}
         try:
-            JournalEntry.objects.create_from_details(
-                effective_date=datetime(2000, 1, 1, tzinfo=timezone.utc),
-                details=[debit, credit],
+            JournalEntry.objects.create_from_account_entry_dicts(
+                account_entry_dicts=[debit, credit],
                 allow_negative_balances=False,
             )
             self.fail(
@@ -70,9 +51,65 @@ class TestJournalEntry(TestCase):
             )
         except ValidationError:
             pass
-        
-        self.assertEqual(JournalEntryDetail.objects.count(), 0)
+
+        self.assertEqual(AccountEntry.objects.count(), 0)
         account_one.refresh_from_db()
         account_two.refresh_from_db()
         self.assertEqual(account_one.balance, 0)
         self.assertEqual(account_two.balance, 0)
+
+    def test_debit_journal_entries_increase_debit_normal_account_balance(self):
+        account_one = AccountFactory(normal=Account.Normals.DEBIT)
+        account_two = AccountFactory(normal=Account.Normals.DEBIT)
+        self.assertEqual(account_one.balance, 0)
+
+        debit = {"account": account_one.id, "normal": 1, "amount": 50}
+        credit = {"account": account_two.id, "normal": -1, "amount": 50}
+        JournalEntry.objects.create_from_account_entry_dicts(
+            account_entry_dicts=[debit, credit],
+        )
+
+        account_one.refresh_from_db()
+        self.assertEqual(account_one.balance, 50)
+
+    def test_debit_journal_entries_decrease_credit_normal_account_balance(self):
+        account_one = AccountFactory(normal=Account.Normals.CREDIT)
+        account_two = AccountFactory(normal=Account.Normals.DEBIT)
+        self.assertEqual(account_one.balance, 0)
+
+        debit = {"account": account_one.id, "normal": 1, "amount": 50}
+        credit = {"account": account_two.id, "normal": -1, "amount": 50}
+        JournalEntry.objects.create_from_account_entry_dicts(
+            account_entry_dicts=[debit, credit],
+        )
+
+        account_one.refresh_from_db()
+        self.assertEqual(account_one.balance, -50)
+
+    def test_credit_journal_entries_increase_credit_normal_account_balance(self):
+        account_one = AccountFactory(normal=Account.Normals.CREDIT)
+        account_two = AccountFactory(normal=Account.Normals.DEBIT)
+        self.assertEqual(account_one.balance, 0)
+
+        debit = {"account": account_one.id, "normal": -1, "amount": 50}
+        credit = {"account": account_two.id, "normal": 1, "amount": 50}
+        JournalEntry.objects.create_from_account_entry_dicts(
+            account_entry_dicts=[debit, credit],
+        )
+
+        account_one.refresh_from_db()
+        self.assertEqual(account_one.balance, 50)
+
+    def test_credit_journal_entries_decrease_debit_normal_account_balance(self):
+        account_one = AccountFactory(normal=Account.Normals.DEBIT)
+        account_two = AccountFactory(normal=Account.Normals.DEBIT)
+        self.assertEqual(account_one.balance, 0)
+
+        debit = {"account": account_one.id, "normal": -1, "amount": 50}
+        credit = {"account": account_two.id, "normal": 1, "amount": 50}
+        JournalEntry.objects.create_from_account_entry_dicts(
+            account_entry_dicts=[debit, credit],
+        )
+
+        account_one.refresh_from_db()
+        self.assertEqual(account_one.balance, -50)

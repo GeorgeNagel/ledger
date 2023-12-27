@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator
 from accounting.models.mixins import IdentifiableMixin, TimestampedMixin
 
 
-class JournalEntryDetail(IdentifiableMixin, TimestampedMixin, models.Model):
+class AccountEntry(IdentifiableMixin, TimestampedMixin, models.Model):
     """
     Represents a single Debit or Credit of a JournalEntry
     """
@@ -15,11 +15,17 @@ class JournalEntryDetail(IdentifiableMixin, TimestampedMixin, models.Model):
 
     # The JournalEntry to which this debit/credit belongs
     journal_entry = models.ForeignKey(
-        "accounting.JournalEntry", on_delete=models.DO_NOTHING
+        "accounting.JournalEntry",
+        on_delete=models.DO_NOTHING,
+        related_name="account_entries",
     )
 
     # Account to which the debit/credit relates
-    account = models.ForeignKey("accounting.Account", on_delete=models.DO_NOTHING)
+    account = models.ForeignKey(
+        "accounting.Account",
+        on_delete=models.DO_NOTHING,
+        related_name="account_entries",
+    )
 
     # The value of the debit/credit
     # Amounts should always be positive

@@ -9,13 +9,6 @@ class TimestampedMixin(models.Model):
     """
 
     # Tracks when this record was inserted in the database
-    # Note: This should be used for tracking/debugging purposes
-    # and should not be used to drive business logic
-    # If you need to drive business logic off of a date,
-    # add a field for that purpose, e.g. 'effective_date'.
-    # This allows new records to be created for previous dates
-    # within the current accounting period while maintaining
-    # an accurate paper trail of when the entries were created
     created = models.DateTimeField(auto_now_add=True)
 
     # Tracks when this record was updated

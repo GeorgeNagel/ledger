@@ -7,7 +7,6 @@ from accounting.models.account_holder import AccountHolder
 
 class TestAccountHolderSerializer(TestCase):
     def test_output_format(self):
-        self.maxDiff = None
         account_holder = AccountHolderFactory(first_name="Ian", last_name="Curtis")
         serializer = AccountHolderSerializer(account_holder)
 

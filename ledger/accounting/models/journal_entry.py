@@ -3,49 +3,61 @@ from django.core.exceptions import ValidationError
 
 from accounting.models.account import Account
 from accounting.models.mixins import IdentifiableMixin, TimestampedMixin
-from accounting.models.journal_entry_detail import JournalEntryDetail
+from accounting.models.account_entry import AccountEntry
 
 
 class JournalEntryManager(models.Manager):
-    def create_from_details(
-        self, *args, details=None, allow_negative_balances=True, **kwargs
+    def create_from_account_entry_dicts(
+        self, *args, account_entry_dicts=None, allow_negative_balances=True, **kwargs
     ):
         """
-        Create a JournalEntry from a list of JournalEntryDetails
+        Create a JournalEntry from a list of AccountEntries
 
         Args:
-        details: list - A list of unsaved JournalEntryDetails
+        account_entry_dicts: list - A list of AccountEntry dictionaries of the shape
+            {
+                "amount": <integer: cents>,
+                "normal": <integer: +1/-1>,
+                "account": <integer: Account id>
+            }
         allow_negative_balances - When False, raises a ValidationError if the
             update would cause an account balance to go negative
         """
-        if not isinstance(details, list):
-            raise ValidationError(
-                "Must provide a list of fields to create JournalEntryDetails"
-            )
+        if not isinstance(account_entry_dicts, list):
+            raise ValidationError("Must provide a list of dictionaries")
 
         credits = 0
         debits = 0
-        for detail in details:
-            if detail.normal == JournalEntryDetail.Normals.DEBIT:
-                debits += detail.amount
+        for account_entry_dict in account_entry_dicts:
+            if account_entry_dict["normal"] == AccountEntry.Normals.DEBIT:
+                debits += account_entry_dict["amount"]
             else:
-                credits += detail.amount
+                credits += account_entry_dict["amount"]
         if credits != debits:
             raise ValidationError("Debits must equal Credits")
 
-        account_ids = [detail.account.id for detail in details]
+        account_ids = [
+            account_entry_dict["account"] for account_entry_dict in account_entry_dicts
+        ]
 
         with transaction.atomic():
             journal_entry = JournalEntry.objects.create(*args, **kwargs)
             Account.objects.filter(id__in=account_ids).select_for_update()
-            for detail in details:
-                detail.journal_entry = journal_entry
-                detail.save()
-                detail.account.balance += (
-                    detail.account.normal * detail.normal * detail.amount
+            for account_entry_dict in account_entry_dicts:
+                account_entry = AccountEntry(
+                    amount=account_entry_dict["amount"],
+                    normal=account_entry_dict["normal"],
+                    account_id=account_entry_dict["account"],
                 )
-                detail.account.save()
-                if detail.account.balance < 0 and not allow_negative_balances:
+                account_entry.journal_entry = journal_entry
+                account_entry.save()
+                account_entry.account.balance += (
+                    account_entry.account.normal
+                    * account_entry.normal
+                    * account_entry.amount
+                )
+                account_entry.account.save()
+                if account_entry.account.balance < 0 and not allow_negative_balances:
                     # This JournalEntry would result in a negative account balance, so
                     # unwind the atomic transaction
                     raise ValidationError(
@@ -59,8 +71,5 @@ class JournalEntry(IdentifiableMixin, TimestampedMixin, models.Model):
     """
     A collection of Credits and Debits for a transaction
     """
-
-    # The effective date of the transaction
-    effective_date = models.DateTimeField()
 
     objects = JournalEntryManager()
