@@ -2,6 +2,12 @@
 
 A proof of concept of double-entry bookkeeping in Django
 
+This project has the following features:
+- Debits = Credits for all journal entries
+- Optional protections against negative balances
+- A RESTful API
+- Multiple Accounts per Account Holder
+
 # Installation
 
 This project has been tested using python 3.10
