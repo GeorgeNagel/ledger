@@ -1,3 +1,5 @@
+import json
+
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
@@ -22,7 +24,8 @@ def list_accounts(request, account_holder_id, *args, **kwargs):
 
 @require_http_methods(["POST"])
 def create_account(request, *args, **kwargs):
-    serializer = AccountSerializer(data=request.POST)
+    data = json.loads(request.body)
+    serializer = AccountSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     serializer.save()
     return JsonResponse(serializer.data)
