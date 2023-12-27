@@ -1,4 +1,3 @@
-from django.views import View
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
@@ -8,8 +7,8 @@ from accounting.serializers.account_holder import AccountHolderSerializer
 
 
 @require_http_methods(["GET"])
-def get_account_holder(request, id, *args, **kwargs):
-    account_holder = get_object_or_404(AccountHolder, id=id)
+def get_account_holder(request, uuid, *args, **kwargs):
+    account_holder = get_object_or_404(AccountHolder, uuid=uuid)
     serializer = AccountHolderSerializer(account_holder)
     return JsonResponse(serializer.data)
 

@@ -8,9 +8,11 @@ from accounting.serializers.account_holder import AccountHolderSerializer
 
 
 class TestGetAccountHolder(TestCase):
-    def test_get(self):
+    def test_get_returns_account_holder(self):
         account_holder = AccountHolderFactory()
-        account_holder_url = reverse("get_account_holder", args=[account_holder.id])
+        account_holder_url = reverse(
+            "get_account_holder", args=[str(account_holder.uuid)]
+        )
 
         response = self.client.get(account_holder_url)
 
@@ -19,7 +21,7 @@ class TestGetAccountHolder(TestCase):
 
 
 class TestCreateAccountHolder(TestCase):
-    def test_post(self):
+    def test_post_creates_new_account_holder(self):
         self.assertFalse(AccountHolder.objects.exists())
         account_holder_url = reverse("create_account_holder")
         request_data = {"first_name": "Martin", "last_name": "Phillipps"}

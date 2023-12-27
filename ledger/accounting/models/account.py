@@ -9,12 +9,19 @@ class Account(IdentifiableMixin, TimestampedMixin, models.Model):
         DEBIT = 1
         CREDIT = -1
 
+    class AccountTypes:
+        SYSTEM = "system"
+        CHECKING = "checking"
+        LOANS_RECEIVABLE = "loans_receivable"
+        CREDIT_CARD = "credit_card"
+        DISCOUNT_ALLOWED = "discount_allowed"
+
     ACCOUNT_TYPE_CHOICES = {
-        "system": "System",
-        "checking": "Checking",
-        "loans_receivable": "Loans receivable",
-        "credit_card": "Credit card",
-        "discount_allowed": "Discount allowed",
+        AccountTypes.SYSTEM: "System",
+        AccountTypes.CHECKING: "Checking",
+        AccountTypes.LOANS_RECEIVABLE: "Loans receivable",
+        AccountTypes.CREDIT_CARD: "Credit card",
+        AccountTypes.DISCOUNT_ALLOWED: "Discount allowed",
     }
 
     account_type = models.CharField(
@@ -30,4 +37,4 @@ class Account(IdentifiableMixin, TimestampedMixin, models.Model):
     # Normal factor represents whether this is a debit-normal or credit-normal Account
     normal = models.IntegerField(choices=Normals)
 
-    balance = models.IntegerField()
+    balance = models.IntegerField(default=0)
