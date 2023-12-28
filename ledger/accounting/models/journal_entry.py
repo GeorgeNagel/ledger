@@ -10,7 +10,7 @@ from accounting.models.account_entry import AccountEntry
 
 class JournalEntryManager(models.Manager):
     def create_from_account_entry_dicts(
-        self, *args, account_entry_dicts=None, allow_negative_balances=True, **kwargs
+        cls, *args, account_entry_dicts=None, allow_negative_balances=True, **kwargs
     ):
         """
         Create a JournalEntry from a list of AccountEntries
