@@ -7,6 +7,7 @@ This project has the following features:
 - Optional protections against negative balances
 - A RESTful API
 - Multiple Accounts per Account Holder
+- Atomic field updates using F() objects to minimize database round-trips
 
 # Installation
 
