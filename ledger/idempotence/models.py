@@ -3,11 +3,20 @@ from django.db.models.functions import Now
 
 
 class IdempotentRequestManager(models.Manager):
+    def key_from_request_and_client_idempotence_key(
+        self, request=None, client_idempotence_key=None
+    ):
+        key = "{}:{}:{}".format(request.path, request.method, client_idempotence_key)
+        return key
+
     def create_from_request_and_response(
         self, request=None, response=None, client_idempotence_key=None
     ):
+        key = IdempotentRequest.objects.key_from_request_and_client_idempotence_key(
+            request=request, client_idempotence_key=client_idempotence_key
+        )
         idempotent_request = IdempotentRequest(
-            key="{}:{}:{}".format(request.path, request.method, client_idempotence_key),
+            key=key,
             response_body=response.content,
             response_status=response.status_code,
             response_headers=dict(response.headers),
