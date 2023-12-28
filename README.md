@@ -9,6 +9,7 @@ This project has the following features:
 - Multiple Accounts per Account Holder
 - Atomic field updates using F() objects to minimize database round-trips
 - Statement creation to close out account balances
+- Idempotent requests by sending a 'Idempotent-Key: abc123' header
 
 # Installation
 
