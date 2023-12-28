@@ -8,6 +8,7 @@ This project has the following features:
 - A RESTful API
 - Multiple Accounts per Account Holder
 - Atomic field updates using F() objects to minimize database round-trips
+- Statement creation to close out account balances
 
 # Installation
 
