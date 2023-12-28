@@ -3,21 +3,6 @@ import uuid
 from django.db import models
 
 
-class TimestampedMixin(models.Model):
-    """
-    Adds creation and modification timestamps
-    """
-
-    # Tracks when this record was inserted in the database
-    created = models.DateTimeField(auto_now_add=True)
-
-    # Tracks when this record was updated
-    modified = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        abstract=True
-
-
 class IdentifiableMixin(models.Model):
     """
     Adds an auto-incrementing Id and UUID
@@ -36,4 +21,4 @@ class IdentifiableMixin(models.Model):
     uuid = models.UUIDField(unique=True, default=uuid.uuid4)
 
     class Meta:
-        abstract=True
+        abstract = True

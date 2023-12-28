@@ -1,10 +1,11 @@
 from django.db import models
+from django.db.models.functions import Now
 
-from accounting.models.mixins import IdentifiableMixin, TimestampedMixin
+from accounting.models.mixins import IdentifiableMixin
 from accounting.models.utils import max_length_from_choices
 
 
-class Account(IdentifiableMixin, TimestampedMixin, models.Model):
+class Account(IdentifiableMixin, models.Model):
     class Normals(models.IntegerChoices):
         DEBIT = 1
         CREDIT = -1
@@ -37,4 +38,14 @@ class Account(IdentifiableMixin, TimestampedMixin, models.Model):
     # Normal factor represents whether this is a debit-normal or credit-normal Account
     normal = models.IntegerField(choices=Normals)
 
+    # The account balance, in cents
     balance = models.IntegerField(default=0)
+
+    # Tracks when this record was inserted in the database
+    # Note: when using Postgres, this should use
+    # django.contrib.postgres.functions.TransactionNow instead
+    # for consistent created timestamps within a db transaction
+    created = models.DateTimeField(db_default=Now())
+
+    # Tracks when this record was updated
+    modified = models.DateTimeField(auto_now=True)

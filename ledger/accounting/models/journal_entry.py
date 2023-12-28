@@ -1,8 +1,9 @@
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
+from django.db.models.functions import Now
 
 from accounting.models.account import Account
-from accounting.models.mixins import IdentifiableMixin, TimestampedMixin
+from accounting.models.mixins import IdentifiableMixin
 from accounting.models.account_entry import AccountEntry
 
 
@@ -67,9 +68,15 @@ class JournalEntryManager(models.Manager):
         return journal_entry
 
 
-class JournalEntry(IdentifiableMixin, TimestampedMixin, models.Model):
+class JournalEntry(IdentifiableMixin, models.Model):
     """
     A collection of Credits and Debits for a transaction
     """
 
     objects = JournalEntryManager()
+
+    # Tracks when this record was inserted in the database
+    # Note: when using Postgres, this should use
+    # django.contrib.postgres.functions.TransactionNow instead
+    # for consistent created timestamps within a db transaction
+    created = models.DateTimeField(db_default=Now())
