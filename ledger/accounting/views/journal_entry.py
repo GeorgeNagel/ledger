@@ -12,8 +12,8 @@ from accounting.serializers.journal_entry import (
 
 
 @require_http_methods(["GET"])
-def get_journal_entry(request, uuid, *args, **kwargs):
-    journal_entry = get_object_or_404(JournalEntry, uuid=uuid)
+def get_journal_entry(request, id, *args, **kwargs):
+    journal_entry = get_object_or_404(JournalEntry, id=id)
     serializer = JournalEntrySerializer(journal_entry)
     return JsonResponse(serializer.data)
 
@@ -25,4 +25,4 @@ def create_journal_entry(request, *args, **kwargs):
     create_journal_entry_serializer.is_valid(raise_exception=True)
     journal_entry = create_journal_entry_serializer.save()
     journal_entry_serializer = JournalEntrySerializer(journal_entry)
-    return JsonResponse(journal_entry_serializer.data)
+    return JsonResponse(journal_entry_serializer.data, status=201)

@@ -17,9 +17,11 @@ def get_account(request, id, *args, **kwargs):
 
 @require_http_methods(["GET"])
 def list_accounts(request, account_holder_id, *args, **kwargs):
-    accounts = Account.objects.filter(account_holder_id=account_holder_id)
+    accounts = Account.objects.filter(account_holder_id=account_holder_id).order_by(
+        "-created"
+    )
     serializer = AccountSerializer(accounts, many=True)
-    return JsonResponse(serializer.data)
+    return JsonResponse(serializer.data, safe=False)
 
 
 @require_http_methods(["POST"])
@@ -28,4 +30,4 @@ def create_account(request, *args, **kwargs):
     serializer = AccountSerializer(data=data)
     serializer.is_valid(raise_exception=True)
     serializer.save()
-    return JsonResponse(serializer.data)
+    return JsonResponse(serializer.data, status=201)

@@ -10,9 +10,7 @@ from accounting.serializers.account_holder import AccountHolderSerializer
 class TestGetAccountHolder(TestCase):
     def test_get_returns_account_holder(self):
         account_holder = AccountHolderFactory()
-        account_holder_url = reverse(
-            "get_account_holder", args=[str(account_holder.uuid)]
-        )
+        account_holder_url = reverse("get_account_holder", args=[account_holder.id])
 
         response = self.client.get(account_holder_url)
 
@@ -28,7 +26,7 @@ class TestCreateAccountHolder(TestCase):
 
         response = self.client.post(account_holder_url, data=request_data)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(AccountHolder.objects.count(), 1)
         account_holder = AccountHolder.objects.first()
         self.assertEqual(response.json(), AccountHolderSerializer(account_holder).data)

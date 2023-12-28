@@ -7,8 +7,8 @@ from accounting.serializers.account_holder import AccountHolderSerializer
 
 
 @require_http_methods(["GET"])
-def get_account_holder(request, uuid, *args, **kwargs):
-    account_holder = get_object_or_404(AccountHolder, uuid=uuid)
+def get_account_holder(request, id, *args, **kwargs):
+    account_holder = get_object_or_404(AccountHolder, id=id)
     serializer = AccountHolderSerializer(account_holder)
     return JsonResponse(serializer.data)
 
@@ -18,4 +18,4 @@ def create_account_holder(request, *args, **kwargs):
     serializer = AccountHolderSerializer(data=request.POST)
     serializer.is_valid(raise_exception=True)
     serializer.save()
-    return JsonResponse(serializer.data)
+    return JsonResponse(serializer.data, status=201)

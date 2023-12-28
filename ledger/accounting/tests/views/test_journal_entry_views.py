@@ -14,7 +14,7 @@ from accounting.serializers.journal_entry import JournalEntrySerializer
 class TestGetJournalEntry(TestCase):
     def test_get_returns_journal_entry(self):
         journal_entry = JournalEntryFactory()
-        journal_entry_url = reverse("get_journal_entry", args=[str(journal_entry.uuid)])
+        journal_entry_url = reverse("get_journal_entry", args=[journal_entry.id])
 
         response = self.client.get(journal_entry_url)
 
@@ -39,7 +39,7 @@ class TestCreateJournalEntry(TestCase):
             journal_entry_url, data=request_data, content_type="application/json"
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(JournalEntry.objects.count(), 1)
         journal_entry = JournalEntry.objects.first()
         self.assertEqual(response.json(), JournalEntrySerializer(journal_entry).data)
