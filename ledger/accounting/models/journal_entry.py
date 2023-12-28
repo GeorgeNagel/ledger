@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.db.models import F
 from django.core.exceptions import ValidationError
 from django.db.models.functions import Now
 
@@ -45,6 +46,7 @@ class JournalEntryManager(models.Manager):
             journal_entry = JournalEntry.objects.create(*args, **kwargs)
             Account.objects.filter(id__in=account_ids).select_for_update()
             for account_entry_dict in account_entry_dicts:
+                # Create the AccountEntry models
                 account_entry = AccountEntry(
                     amount=account_entry_dict["amount"],
                     normal=account_entry_dict["normal"],
@@ -52,18 +54,32 @@ class JournalEntryManager(models.Manager):
                 )
                 account_entry.journal_entry = journal_entry
                 account_entry.save()
-                account_entry.account.balance += (
-                    account_entry.account.normal
-                    * account_entry.normal
-                    * account_entry.amount
-                )
-                account_entry.account.save()
-                if account_entry.account.balance < 0 and not allow_negative_balances:
-                    # This JournalEntry would result in a negative account balance, so
-                    # unwind the atomic transaction
-                    raise ValidationError(
-                        "Negative account balances not allowed when allow_negative_balances flag is False"
+
+                # Update Account balances
+                if allow_negative_balances:
+                    # We can optimize the number of round-trip queries to Postgres
+                    # by using atomic field updates if we don't care about potentially
+                    # creating negative balances
+                    Account.objects.filter(id=account_entry.account_id).update(
+                        balance=F("balance")
+                        + account_entry.amount * account_entry.normal * F("normal")
                     )
+                else:
+                    account_entry.account.balance += (
+                        account_entry.account.normal
+                        * account_entry.normal
+                        * account_entry.amount
+                    )
+                    account_entry.account.save()
+                    if (
+                        account_entry.account.balance < 0
+                        and not allow_negative_balances
+                    ):
+                        # This JournalEntry would result in a negative account balance, so
+                        # unwind the atomic transaction
+                        raise ValidationError(
+                            "Negative account balances not allowed when allow_negative_balances flag is False"
+                        )
 
         return journal_entry
 
