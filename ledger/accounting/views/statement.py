@@ -17,7 +17,7 @@ def get_statement(request, id, *args, **kwargs):
 
 @require_http_methods(["GET"])
 def list_statements(request, account_id, *args, **kwargs):
-    statements = Statement.objects.filter(account_id=account_id).order_by("-created")
+    statements = Statement.objects.filter(account_id=account_id).order_by("-date_close")
     serializer = StatementSerializer(statements, many=True)
     return JsonResponse(serializer.data, safe=False)
 
