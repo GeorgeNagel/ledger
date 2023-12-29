@@ -45,3 +45,9 @@ python manage.py runserver
 ```
 python manage.py test
 ```
+
+# Management commands
+
+The idempotent request cache can be cleared out via a management command.
+IdempotentRequests over 30 minutes old will be deleted from the db.
+`./manage.py clear_old_idempotent_requests`
