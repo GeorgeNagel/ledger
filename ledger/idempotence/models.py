@@ -29,7 +29,7 @@ class IdempotentRequest(models.Model):
     id = models.AutoField(primary_key=True)
     created = models.DateTimeField(default=Now())
     key = models.CharField(max_length=256, unique=True)
-    response_body = models.TextField()
+    response_body = models.BinaryField()
     response_headers = models.JSONField()
     response_status = models.IntegerField()
 

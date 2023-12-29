@@ -14,18 +14,22 @@ class IdempotenceMiddleware:
         # the view (and later middleware) are called.
 
         client_idempotence_key = request.headers.get("Idempotence-Key")
-        idempotent_request_exists = False
+        existing_idempotent_request = None
         if client_idempotence_key:
-            idempotence_key = IdempotentRequest.objects.key_from_request_and_client_idempotence_key(
-                request=request, client_idempotence_key=client_idempotence_key
+            idempotence_key = (
+                IdempotentRequest.objects.key_from_request_and_client_idempotence_key(
+                    request=request, client_idempotence_key=client_idempotence_key
+                )
             )
             try:
-                idempotent_request = IdempotentRequest.objects.get(key=idempotence_key)
-                idempotent_request_exists = True
+                existing_idempotent_request = IdempotentRequest.objects.get(
+                    key=idempotence_key
+                )
                 response = HttpResponse()
-                response.content = idempotent_request.response_body
-                response.status = idempotent_request.response_status
-                response.headers = idempotent_request.response_headers
+                response.content = existing_idempotent_request.response_body
+                response.status = existing_idempotent_request.response_status
+                response.headers = existing_idempotent_request.response_headers
+                return response
             except IdempotentRequest.DoesNotExist:
                 pass
 
@@ -34,7 +38,7 @@ class IdempotenceMiddleware:
         # Code to be executed for each request/response after
         # the view is called.
 
-        if client_idempotence_key and not idempotent_request_exists:
+        if client_idempotence_key and not existing_idempotent_request:
             IdempotentRequest.objects.create_from_request_and_response(
                 request=request,
                 response=response,
